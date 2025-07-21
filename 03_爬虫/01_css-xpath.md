@@ -53,5 +53,8 @@
 
 7. xpath string函数可以拼接文本
 8. css可以按照范围选择子节点
+9. xpath 可以根据文本内容选择元素
+    - //a[contains(text(), "ans")]
+    - //a[text()="ans"]
 
 
