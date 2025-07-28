@@ -20,7 +20,7 @@
     <a id="ans" class="reference"></a> 
     ```
     - 如果是class属性
-        - css a.ref.ans 
+        - css a.reference.ans 
         - xpath //a[contains(@class 'ref') and contains(@class 'ans')]
     
     - 如果是id属性
