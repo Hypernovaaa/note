@@ -32,6 +32,9 @@ DOWNLOAD_HANDLERS = {
 }
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 PLAYWRIGHT_BROWSER_TYPE = "chromium"  # or firefox
+PLAYWRIGHT_LAUNCH_OPTIONS = {
+    "headless": False
+}
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
 
