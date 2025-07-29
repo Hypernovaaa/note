@@ -14,7 +14,6 @@ NEWSPIDER_MODULE = "zhihu_login.spiders"
 
 ADDONS = {}
 
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
 
@@ -33,7 +32,7 @@ DOWNLOAD_HANDLERS = {
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 PLAYWRIGHT_BROWSER_TYPE = "chromium"  # or firefox
 PLAYWRIGHT_LAUNCH_OPTIONS = {
-    "headless": True
+    "headless": False
 }
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
