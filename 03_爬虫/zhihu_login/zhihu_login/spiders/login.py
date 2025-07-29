@@ -22,6 +22,7 @@ class LoginSpider(scrapy.Spider):
                         PageMethod("fill", "input[name='username']", "13052694175"),
                         PageMethod("wait_for_selector", "button:has-text('获取短信验证码')"),
                         PageMethod("click", "button:has-text('获取短信验证码')"),
+                        PageMethod("wait_for_timeout", 2000),
                         # 截图
                         PageMethod("screenshot", path="/data/workspace/liuhui/liuhui_work/06_Learning/note/03_爬虫/zhihu_login/ans.png"),
                     ],
