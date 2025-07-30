@@ -33,13 +33,19 @@ class LoginSpider(scrapy.Spider):
                     "playwright_include_page": True,
                     "playwright_page_methods": [
                         # 等待输入框加载
+                        PageMethod("add_init_script", """
+                            Object.defineProperty(navigator, 'webdriver',{get:()=>undefined});
+                            Object.defineProperty(navigator, 'languages',{get:()=>['en-US','en']});
+                            Object.defineProperty(navigator, 'plugins',{get:()=>[1,2,3,4,5]});
+                            window.chrome = {runtime:{}};
+                        """),
                         PageMethod("wait_for_selector", "input[name='username']"),
-                        PageMethod("wait_for_timeout", 1000),
                         # 填写用户名
                         PageMethod("fill", "input[name='username']", "13052694175"),
+                        PageMethod("wait_for_timeout", 1000),
                         PageMethod("wait_for_selector", "button:has-text('获取短信验证码')"),
                         PageMethod("click", "button:has-text('获取短信验证码')"),
-                        PageMethod("wait_for_timeout", 2000),
+                        PageMethod("wait_for_timeout", 1000),
                         # 截图
                         PageMethod("screenshot", path="./ans.png"),
                         # PageMethod("pause")
@@ -49,6 +55,10 @@ class LoginSpider(scrapy.Spider):
     
     async def login(self, response):
         page: Page = response.meta["playwright_page"]
+
+        # 等待验证码加载完成
+        await page.wait_for_selector("div.yidun_bgimg")
+
         img = Image.open("./ans.png")
         box = (460, 140, 820, 440)
         slide_img = img.crop(box)
@@ -73,6 +83,7 @@ class LoginSpider(scrapy.Spider):
         print(f"------------------------------------------> offset : {pixel_offset}")
         await page.screenshot(path="./moved.png")
         await page.mouse.up()
+        await page.wait_for_timeout(500 * 1000)
 
 
     def parse(self, response):
