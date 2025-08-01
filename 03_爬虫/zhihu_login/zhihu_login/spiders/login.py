@@ -4,6 +4,8 @@ from playwright.async_api import Page
 from PIL import Image
 import base64, requests
 import asyncio
+from scipy import interpolate
+import numpy as np
 
 def verify(b):
     url = "http://api.jfbym.com/api/YmServer/customApi"
@@ -19,12 +21,51 @@ def verify(b):
     response = requests.request("POST", url, headers=_headers, json=data).json()
     return int(response["data"]["data"])
 
+async def drag_slide(page:Page, start, end):
+    '''拟人拖动滑块 
+    Arguments:
+        arg
+    Returns:
+        out
+    '''
+    ctrl = [
+      (start[0], start[1]),
+      ((start[0] + end[0]) / 2, start[1] - 50),
+      end
+    ]
+    points = np.array(ctrl)
+    t = range(len(points))
+    num_points = 50
+    t_new = np.linspace(0, len(points) - 1, num_points)
+    x_t = interpolate.splrep(t, points[:,0], k=2)
+    y_t = interpolate.splrep(t, points[:,1], k=2)
+    x_i = interpolate.splev(t_new, x_t)
+    y_i = interpolate.splev(t_new, y_t)
+    path_points = [(x,y) for x, y in zip(x_i, y_i)]
+    print(path_points)
+
+    await page.mouse.move(start[0], start[1])
+    await page.mouse.down()
+
+    num_step = 1
+    for x, y in path_points[1:]:
+        await page.mouse.move(x, y)
+        if num_step < (num_points * 3 / 4):
+            wait_time = 0.0005 * (num_points / num_step)
+        else:
+            wait_time = 0.002 * (num_points / (num_points - num_step))
+        await asyncio.sleep(wait_time)
+        num_step += 1
+
+    await asyncio.sleep(1.5)
+    await page.mouse.up()
+
 class LoginSpider(scrapy.Spider):
     name = "login"
     allowed_domains = ["www.zhihu.com"]
     start_urls = ["https://www.zhihu.com/signin?next=%2F"]
 
-    def start_requests(self):
+    async def start(self):
         for url in self.start_urls:
             yield scrapy.Request(
                 url, 
@@ -34,10 +75,13 @@ class LoginSpider(scrapy.Spider):
                     "playwright_page_methods": [
                         # 等待输入框加载
                         PageMethod("add_init_script", """
+                            console.log('Running init script to modify navigator.webdriver');
                             Object.defineProperty(navigator, 'webdriver',{get:()=>undefined});
                             Object.defineProperty(navigator, 'languages',{get:()=>['en-US','en']});
                             Object.defineProperty(navigator, 'plugins',{get:()=>[1,2,3,4,5]});
                             window.chrome = {runtime:{}};
+                            console.log('navigator.webdriver after modification:', navigator.webdriver);
+                            console.log('navigator.webdriver after modification:', navigator.plugins);
                         """),
                         PageMethod("wait_for_selector", "input[name='username']"),
                         # 填写用户名
@@ -57,6 +101,7 @@ class LoginSpider(scrapy.Spider):
         page: Page = response.meta["playwright_page"]
 
         # 等待验证码加载完成
+        await asyncio.sleep(2)
         await page.wait_for_selector("div.yidun_bgimg")
 
         img = Image.open("./ans.png")
@@ -69,26 +114,20 @@ class LoginSpider(scrapy.Spider):
         pixel_offset = verify(b)
         x_start = 33 + 460
         y_start = 258 + 140
-        await page.mouse.move(x_start, y_start)
-        await page.mouse.down()
 
-        total = int(pixel_offset + 10)
-        current = 0
-        while current < total:
-            step = min(5, total - current)
-            current += step
-            await page.mouse.move(x_start + current, y_start, steps=1)
-            await asyncio.sleep(0.02)
+        x_end = x_start + pixel_offset + 15
+        y_end = y_start + 20
+
+        await drag_slide(page, (x_start, y_start), (x_end, y_end))
 
         print(f"------------------------------------------> offset : {pixel_offset}")
         await page.screenshot(path="./moved.png")
         await page.mouse.up()
-        await page.wait_for_timeout(500 * 1000)
+        await page.wait_for_timeout(2 * 1000)
+        await page.screenshot(path="./final.png")
 
 
     def parse(self, response):
         import pdb; pdb.set_trace()
         print(response)
-
-
     
