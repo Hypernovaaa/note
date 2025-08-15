@@ -30,4 +30,10 @@ $$\begin{align}
 softmax(X_1) = \frac{e^{x_i - m_1}}{\sum_{j}e^{x_j - m_1}}
 \end{align}$$
 
-- 这里距离真正的softmax结果就是将$m_1$替换成$m$, 因此乘以因子$e^{m1 - m}$
+- 这里距离真正的softmax结果就是将$m_1$替换成$m$, 因此乘以因子$e^{m1 - m}$就是无损版的softmax了
+
+## Flashattn算法流程
+<img src="https://jsd.cdn.zzko.cn/gh/Hypernovaaa/picx-images-hosting@master/20250815/image.8s3mp17j6u.jpg" width=1000>
+
+- 初始状态下$Q,K,V \in \mathbb{R}^{N*d}$在HBM中, SRAM的大小为M
+- 在HBM请求存储结果O和中间值的内存, $O \in \mathbb{R}^{N*d}$
