@@ -62,7 +62,7 @@ $$\begin{align}
 \max_{\theta'} \mathcal{L}_\theta(\theta') \;\; \text{s.t.} \: \mathbb{E}_{s \sim \nu^{\pi_{\theta_k}}}[D_{KL}(\pi_{\theta_k}(\cdot|s), \pi_{\theta'}(\cdot | s))] \leq \delta
 \end{align}$$
 
-	- 上式中$\pi_{\theta_k}$表示k时刻的策略，和旧策略是一个意思只是换了个符号
+- 上式中$\pi_{\theta_k}$表示k时刻的策略，和旧策略是一个意思只是换了个符号
 
 ## 近似求解
 - 对目标函数采用一阶泰勒展开
@@ -75,7 +75,7 @@ g = \nabla_{\theta'}\mathbb{E}_{s \sim \nu^{\pi_{\theta_k}}} \mathbb{E}_{a \sim 
 \end{align}$$
 	- 一阶泰勒展开的表达式为
 $$\begin{align}
-f(x) = \sum_{i=0}^n \frac{f^{(i)}(x_0)}{i!}
+f(x) = \sum_{i=0}^n \frac{f^{(i)}(x_0)}{i!} (x - x_0)^i
 \end{align}$$
 
 - 约束条件在$\theta_k$处二阶展开如下式
@@ -130,7 +130,7 @@ $$\begin{align}
 
 - 整理得到
 $$\begin{align}
-\lambda = \sqrt{\frac{g^T H^{-1}g}{2 \delta}} H^{-1}g
+\lambda = \sqrt{\frac{g^T H^{-1}g}{2 \delta}}
 \end{align}$$
 
 - 将求解的$\lambda$代入，因为想要优化的是参数$\theta'$，这里求解的是x，所以要换元回来
@@ -141,3 +141,8 @@ $$\begin{align}
 - 这里面对的是一个不等式约束的最优化问题，即新旧策略之间的KL散度小于等于一定的阈值$\delta$，但是上述过程直接当做等式约束处理的，chat老师说可以严格证最优点一定会撞到KL球的边界，我理解的是只要$\delta$设置的足够小，那么在这个信任区域内近似函数是单调的，所以最优解在信任区域的边缘。因此也就可以当做等式约束去处理
 
 ## 共轭梯度
+- 以上$\theta'$的解析解形式中, g是策略的梯度, H是策略的协方差矩阵, $\delta$是超参数这些都是已知项, 但是问题是这里需要计算H矩阵的逆矩阵, 对于一个10000参数的策略模型来说, H矩阵的维度为10000x10000, 这个矩阵一般不能直接存储或者是计算逆矩阵, 因此解决方法是令$x = H^{-1}g$, 此时的更新公式变为
+$$\begin{align}
+\theta_{k+1} = \theta_k + \sqrt{\frac{2\delta}{x^T H x}} x
+\end{align}$$
+- 这里式子中唯一的未知量是x, 所以此时变成了$Hx=g$的求解问题, H是正定矩阵, 使用共轭梯度法求解.
