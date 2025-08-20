@@ -163,8 +163,7 @@ class TRPO:
         td_delta = td_target - self.critic(states)
         advantage = compute_advantage(self.gamma, self.lmbda,
                                       td_delta.cpu()).to(self.device)
-        old_log_probs = torch.log(self.actor(states).gather(1,
-                                                            actions)).detach()
+        old_log_probs = torch.log(self.actor(states).gather(1,actions)).detach()
         old_action_dists = torch.distributions.Categorical(
             self.actor(states).detach())
         critic_loss = torch.mean(
@@ -176,7 +175,7 @@ class TRPO:
         self.policy_learn(states, actions, old_action_dists, old_log_probs,
                           advantage)
         
-num_episodes = 500
+num_episodes = 5000
 hidden_dim = 128
 gamma = 0.98
 lmbda = 0.95
