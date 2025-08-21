@@ -39,7 +39,7 @@
         - css a[id="ans"][class*="refer"]
         - xpath //a[@id="ans" and contains(@class, "refer")]
 
-    - 这么一看在根据属性选择元素这方面,css是xpath的上位替代啊,,xpath需要写在一个方括号里,,css可以堆叠筛选条件
+    - 这么一看在根据属性选择元素这方面,css是xpath的上位替代啊, xpath需要写在一个方括号里, css可以堆叠筛选条件
 
 6. 提取属性或者文本内容
     - 提取属性内容 <a id="ans" class="reference"></a>
@@ -56,5 +56,4 @@
 9. xpath 可以根据文本内容选择元素
     - //a[contains(text(), "ans")]
     - //a[text()="ans"]
-
 

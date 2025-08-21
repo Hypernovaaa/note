@@ -3,32 +3,32 @@
 - 在更新时找到一块信任区域（trust region），在这个区域上更新策略时能够得到某种策略性能的安全性保证，这就是信任区域策略优化（trust region policy optimization，TRPO）算法的主要思想
 # 策略目标
 - 当前策略为$\pi_\theta$，参数为$\theta$，目标是找到更优的参数$\theta'$，使$\mathcal{J}(\theta') \ge \mathcal{J}(\theta)$，由于初始状态$s_0$的分布和策略无关，因此上述策略$\pi_\theta$下的优化目标可以写成在新策略$\pi_{\theta'}$的期望的形式
-$$\begin{align}
-\mathcal{J}(\theta) &= \mathbb{E}_{s_0}[V^{\pi_\theta}(s_0)] \\
-% &= \mathbb{E}_{\pi_\theta} \left[\sum_{t=0}^\infty \gamma^t V^{\pi_\theta}(s_t)\right] \\
-&= \mathbb{E}_{\pi_{\theta'}}\left[\sum_{t=0}^\infty \gamma^t V^{\pi_\theta}(s_t) - \sum_{t=1}^\infty \gamma^t V^{\pi_\theta}(s_t) \right] \\
-&= -\mathbb{E}_{\pi_{\theta'}}\left[\sum_{t=0}^\infty \gamma^t(\gamma V^{\pi_\theta}(s_{t+1}) - V^{\pi_\theta}(s_t) \right]
-\end{align}$$
+	$$\begin{align}
+	\mathcal{J}(\theta) &= \mathbb{E}_{s_0}[V^{\pi_\theta}(s_0)] \\
+	% &= \mathbb{E}_{\pi_\theta} \left[\sum_{t=0}^\infty \gamma^t V^{\pi_\theta}(s_t)\right] \\
+	&= \mathbb{E}_{\pi_{\theta'}}\left[\sum_{t=0}^\infty \gamma^t V^{\pi_\theta}(s_t) - \sum_{t=1}^\infty \gamma^t V^{\pi_\theta}(s_t) \right] \\
+	&= -\mathbb{E}_{\pi_{\theta'}}\left[\sum_{t=0}^\infty \gamma^t(\gamma V^{\pi_\theta}(s_{t+1}) - V^{\pi_\theta}(s_t) \right]
+	\end{align}$$
 	- 这里公式1到公式2中$V^{\pi_\theta}(s_0)$和$(\sum_{t=0}^\infty \gamma^t V^{\pi_\theta}(s_t) - \sum_{t=1}^\infty \gamma^t V^{\pi_\theta}(s_t))$是完全等价的，但是期望的下标为什么从$s_0$变成了$\pi_{\theta'}$？（个人理解）
 		- 首先公式1中$s_0$是一个随机变量，这个是环境决定的，我们玩一局游戏的初始状态只跟这个游戏本身有关，跟策略无关，那这个期望就是环境给出初始状态的分布，计算这个初始状态价值的期望
 		- 公式2中$(\sum_{t=0}^\infty \gamma^t V^{\pi_\theta}(s_t) - \sum_{t=1}^\infty \gamma^t V^{\pi_\theta}(s_t))$含义是采样了一条序列但是只取0时刻的状态价值，这里“关于随机变量$\tau$的期望”这个$\tau$的含义从环境给的随机变量变成了我们采样测序列，因此下标变成了新策略$\pi_{\theta'}$
 		- 因为初始状态的分布和策略无关，所以这里用什么策略都可以，这里就变成了旧策略对新策略采样下的初始状态的价值的期望
 - 新旧策略目标函数之差为
-$$\begin{align}
-\mathcal{J}(\theta') - \mathcal{J}(\theta) &= \mathbb{E}_{s_0}[V^{\pi_{\theta'}}(s_0)] - \mathbb{E}_{s_0}[V^{\pi_\theta}(s_0)] \\
-&= \mathbb{E}_{\pi_{\theta'}}\left[\sum_{t=0}^\infty \gamma^t r(s_t, a_t)\right] + \mathbb{E}_{\pi_{\theta'}} \left[\sum_{t=0}^\infty \gamma^t(\gamma V^{\pi_\theta}(s_{t+1}) - V^{\pi_\theta}(s_t) \right]\\
-&= \mathbb{E}_{\pi_{\theta'}}\left[\sum_{t=0}^\infty \gamma^t[r(s_t, a_t) + \gamma V^{\pi_\theta}(s_{t+1}) - V^{\pi_\theta}(s_t)]\right]\\
-&= \mathbb{E}_{\pi_{\theta'}}\left[\sum_{t=0}^\infty \gamma^t A^{\pi_\theta}(s_t, a_t)\right]\\
-&= \sum_{t=0}^\infty \gamma^t \mathbb{E}_{s_t \sim P_t^{\pi_{\theta'}}} \mathbb{E}_{a_t \sim \pi_{\theta'}(\cdot |s_t)}[A^{\pi_\theta}(s_t, a_t)] \\
-&= \frac{1}{1-\gamma} \mathbb{E}_{s \sim \nu^{\pi_{\theta'}}} \mathbb{E}_{a \sim\pi_{\theta'}(\cdot |s)}[A^{\pi_\theta}(s, a)]
-\end{align}$$
+	$$\begin{align}
+	\mathcal{J}(\theta') - \mathcal{J}(\theta) &= \mathbb{E}_{s_0}[V^{\pi_{\theta'}}(s_0)] - \mathbb{E}_{s_0}[V^{\pi_\theta}(s_0)] \\
+	&= \mathbb{E}_{\pi_{\theta'}}\left[\sum_{t=0}^\infty \gamma^t r(s_t, a_t)\right] + \mathbb{E}_{\pi_{\theta'}} \left[\sum_{t=0}^\infty \gamma^t(\gamma V^{\pi_\theta}(s_{t+1}) - V^{\pi_\theta}(s_t) \right]\\
+	&= \mathbb{E}_{\pi_{\theta'}}\left[\sum_{t=0}^\infty \gamma^t[r(s_t, a_t) + \gamma V^{\pi_\theta}(s_{t+1}) - V^{\pi_\theta}(s_t)]\right]\\
+	&= \mathbb{E}_{\pi_{\theta'}}\left[\sum_{t=0}^\infty \gamma^t A^{\pi_\theta}(s_t, a_t)\right]\\
+	&= \sum_{t=0}^\infty \gamma^t \mathbb{E}_{s_t \sim P_t^{\pi_{\theta'}}} \mathbb{E}_{a_t \sim \pi_{\theta'}(\cdot |s_t)}[A^{\pi_\theta}(s_t, a_t)] \\
+	&= \frac{1}{1-\gamma} \mathbb{E}_{s \sim \nu^{\pi_{\theta'}}} \mathbb{E}_{a \sim\pi_{\theta'}(\cdot |s)}[A^{\pi_\theta}(s, a)]
+	\end{align}$$
 	- 公式8到公式9用到了占度量的定义10，以及根据占用度量推导出的公式14，将所有时刻下期望的累加变成了用占用度量描述的随机变量的期望
 	- 关于期望公式的写法$\mathbb{E}_{X \sim \rho} \mathbb{E}_{Y \sim \mu}[f(X,Y)]$和$\mathbb{E}_{X \sim \rho} [\mathbb{E}_{Y \sim \mu}[f(X,Y)]]$,两种写法是等价的,有时候为了简洁会采用前一种写法
 	- 公式11中期望的展开式直接将$f(s_t)$变成了$f(s)$?(个人理解)
 		- 公式11左边的含义是对每个时刻t求关于状态$s_t$的期望，展开就是对状态空间中的每个状态s乘上对应t时刻的状态分布概率再求和，应为状态空间和时刻无关所以这里也没必要标明是哪个时刻的状态空间，所以后边公式12中才可以使用占用度量$\nu_\pi(s)$替换$\sum_{t=0}^\infty \gamma^tp_t^\pi(s)$
-$$\begin{align}
-\nu^\pi(s) = (1 - \gamma) \sum_{t=0}^\infty \gamma^t P_t^\pi(s)
-\end{align}$$
+		$$\begin{align}
+		\nu^\pi(s) = (1 - \gamma) \sum_{t=0}^\infty \gamma^t P_t^\pi(s)
+		\end{align}$$
 
 $$\begin{align}
 \sum_{t=0}^\infty \gamma^t \mathbb{E}_{s_t \sim P_t^\pi}[f(s_t)] &= \sum_{t=0}^\infty \gamma^t \sum_{s \in S} P_t^\pi(s)f(s)\\
@@ -38,18 +38,19 @@ $$\begin{align}
 \end{align}$$
 
 - 只要能够找到新的策略$\theta'$能够使公式9$\geq 0$,就相当于找个一个更优的策略,判断一个新的策略$/theta'$是不是更优策略的时候,公式9中不好获取的部分是新策略的占用度量$\nu^{\pi_{\theta'}}$，因为占用度量是一个统计量，因此用旧策略的占用度量近似替代新策略的占用度量，这在策略变化比较小的情况下是合理的，新策略的优化目标如下
-$$\begin{align}
-\mathcal{J}(\theta') = \mathcal{J}(\theta) + \frac{1}{1-\gamma} \mathbb{E}_{s \sim \nu^{\pi_\theta}} \mathbb{E}_{a \sim \pi_{\theta'}(\cdot | s)}[A^{\pi_\theta}(s,a)]
-\end{align}$$
-
+	
+	$$\begin{align}
+	\mathcal{J}(\theta') = \mathcal{J}(\theta) + \frac{1}{1-\gamma} \mathbb{E}_{s \sim \nu^{\pi_\theta}} \mathbb{E}_{a \sim \pi_{\theta'}(\cdot | s)}[A^{\pi_\theta}(s,a)]
+	\end{align}$$
+	
 	- 重要性采样，
-$$\begin{align}
-\mathbb{E}_{X \sim p}[f(x)] &= \int_x p(x)f(x) \;dx \\
-&= \int_x q(x) \frac{p(x)}{q(x)} f(x) \; dx\\
-&= \mathbb{E}_{X \sim q}\left[\frac{p(x)}{q(x)} f(x)\right] \\
-&=  \mathbb{E}_{X \sim q}\left[g(x)\right] \:; g(x) = \frac{p(x)}{q(x)} f(x)
-\end{align}$$
-
+	$$\begin{align}
+	\mathbb{E}_{X \sim p}[f(x)] &= \int_x p(x)f(x) \;dx \\
+	&= \int_x q(x) \frac{p(x)}{q(x)} f(x) \; dx\\
+	&= \mathbb{E}_{X \sim q}\left[\frac{p(x)}{q(x)} f(x)\right] \\
+	&=  \mathbb{E}_{X \sim q}\left[g(x)\right] \:; g(x) = \frac{p(x)}{q(x)} f(x)
+	\end{align}$$
+	
 	- 公式15结合公式18可以将新策略的目标函数统一成关于旧策略动作分布下的期望,目标函数可以整理为下式,这样做的好处是可以在旧策略采样的数据上评估新策略的价值，否则每有一个新策略都需要采样评估代价太高。
 
 $$\begin{align}
@@ -146,3 +147,16 @@ $$\begin{align}
 \theta_{k+1} = \theta_k + \sqrt{\frac{2\delta}{x^T H x}} x
 \end{align}$$
 - 这里式子中唯一的未知量是x, 所以此时变成了$Hx=g$的求解问题, H是正定矩阵, 使用共轭梯度法求解.
+
+## 广义优势估计
+
+- 广义优势估计(Generalized Advantage Estimation，GAE), 是用来估计优势函数的, 时序差分误差表示为$\delta_t = r_t + \gamma(V(S_{t+1}) - V(S_t))$, V表示状态价值函数, 在TRPO中是价值函数给出的, 可以当做一个已知量, 根据多步时序差分的展开结果有
+  $$ {align}
+  A_t^{(1)} = \delta_t = -V(S_t) + r_t + \gamma V(S_{t+1}) \\
+  A_t^{(2)} = 
+  $$ {align}
+  
+
+  $$
+
+- 
