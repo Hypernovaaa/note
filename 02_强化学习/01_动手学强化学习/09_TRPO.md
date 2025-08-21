@@ -151,12 +151,27 @@ $$\begin{align}
 ## 广义优势估计
 
 - 广义优势估计(Generalized Advantage Estimation，GAE), 是用来估计优势函数的, 时序差分误差表示为$\delta_t = r_t + \gamma(V(S_{t+1}) - V(S_t))$, V表示状态价值函数, 在TRPO中是价值函数给出的, 可以当做一个已知量, 根据多步时序差分的展开结果有
-  $$ {align}
-  A_t^{(1)} = \delta_t = -V(S_t) + r_t + \gamma V(S_{t+1}) \\
-  A_t^{(2)} = 
-  $$ {align}
-  
+$$\begin{align}
+A_t^{(1)} &= \delta_t = -V(S_t) + r_t + \gamma V(S_{t+1}) \\
+A_t^{(2)} &= -V(S_t) + r_t + \gamma r_{t+1} + \gamma^2 V(S_{t+1}) \\
+&= -V(S_t) + r_t + \gamma V(S_{t+1}) - \gamma V(S_{t+1}) + \gamma r_{t+1} + \gamma^2 V(S_{t+1}) \\
+&= -V(S_t) + r_t + \gamma V(S_{t+1}) + \gamma \left[-V(S_{t+1}) + r_{t+1} + \gamma V(S_{t+1}) \right] \\
+&= \delta_t + \gamma \delta_{t+1}
+\end{align}$$
 
-  $$
+- 以此类推有步数为k的时序差分误差为:
+$$\begin{align}
+A_t^{(k)} = \sum_{l=0}^{k-1} \gamma^l \delta_{t+l}
+\end{align}$$
 
-- 
+- 常见的估计优势函数的方法如下, TRPO中采用了一种折中的方法, 使用指数移动平均对不同时刻的时序差分误差加权, 这种方法通常更加稳定
+	1. 使用单步时序差分误差估计, 这种方法方差低但是偏差大
+	2. 使用蒙特卡洛方法估计, 高方差低偏差
+
+- 指数移动平均结果如下:
+$$\begin{align}
+A_t^{GAE} &= (1 - \lambda)(A_t^{(1)} + \lambda A_t^{(2)} + \lambda^2 A_t^{(3)} + ...) \\
+&= \sum_{l=0}^{\infty}(\lambda\gamma)^l \delta_{t+l}
+\end{align}$$
+- [上述推导过程详见这里](https://hrl.boyuai.com/chapter/2/trpo%E7%AE%97%E6%B3%95#116-%E5%B9%BF%E4%B9%89%E4%BC%98%E5%8A%BF%E4%BC%B0%E8%AE%A1)
+
