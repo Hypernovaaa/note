@@ -30,3 +30,4 @@ $$
 $$
 \nabla_\omega \mathcal{L}(\omega) = -\left(r + \gamma V_\omega (s_{t+1}) - V_\omega(s_t) \right) \nabla_\omega V_\omega(s_t)
 $$
+

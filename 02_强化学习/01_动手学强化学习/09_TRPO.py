@@ -132,6 +132,7 @@ class TRPO:
         surrogate_obj = self.compute_surrogate_obj(states, actions, advantage,
                                                    old_log_probs, self.actor)
         grads = torch.autograd.grad(surrogate_obj, self.actor.parameters())
+        import pdb; pdb.set_trace()
         obj_grad = torch.cat([grad.view(-1) for grad in grads]).detach()
         # 用共轭梯度法计算x = H^(-1)g
         descent_direction = self.conjugate_gradient(obj_grad, states,
