@@ -6,7 +6,7 @@ RMSNorm(x) = \frac{x}{\sqrt{\frac{1}{d} \sum_{i=1}^d x_i^2 + \epsilon}} * \gamma
 \end{align}$$
 
 
-### LayerNorm 
+### LayerNorm & BatchNorm 
 $$\begin{align}
 LayerNorm(x) &= \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} \gamma + \beta \\
 \mu &= \frac{1}{d} \sum_{i=1}^d x_i \\
